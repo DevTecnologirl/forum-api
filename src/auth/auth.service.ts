@@ -2,20 +2,27 @@ import { Inject, Injectable, NotFoundException, UnauthorizedException } from '@n
 import { Prisma, User } from '@prisma/client';
 import { UserService } from 'src/user/user.service';
 import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
+import { access } from 'fs';
 
 @Injectable()
 export class AuthService {
     @Inject()
     private readonly userService: UserService;
+    @Inject()
+    private readonly jwtService: JwtService;
 
     async singin(params: Prisma.UserCreateInput,
-    ): Promise<Omit<User, 'password'>> {
+    // ): Promise<Omit<User, 'password'>> {
+    ): Promise<{ access_token: string }> {
         const user = await this.userService.user({ email: params.email });
         if (!user) throw new NotFoundException('User not found');
         const passwordMatch = await bcrypt.compare(params.password, user.password);
         if (!passwordMatch) throw new UnauthorizedException('Invalid credentials');
 
-        const { password, ...result } = user;
-        return result;
+        const payload = { sub: user.id } //retorna no token apenas o id do usuario no payload
+        // const { password, ...result } = user;
+       // return result;
+       return { access_token: await this.jwtService.signAsync(payload) };
     }
 }
