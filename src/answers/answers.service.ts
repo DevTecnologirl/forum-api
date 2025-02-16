@@ -10,12 +10,12 @@ export class AnswersService {
   @Inject()
   private readonly prisma: PrismaService
 
-  create(createAnswerDto: Prisma.AnswersCreateInput, userId: number, questionId: number) {
+  create(createAnswerDto: Prisma.AnswersCreateInput, userId: any, questionId: number) {
     // const questionId = 1;
     const newAnswer = {
       body: createAnswerDto.body,
       user: {
-        connect: { id: userId },
+        connect: { id: userId.sub },
       },
       question: {
         connect: { id: questionId },
